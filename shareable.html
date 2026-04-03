@@ -1,0 +1,1882 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AudioMind - 全音频收录工具</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      /* Theme Colors */
+      --bg-primary: #0F0F11;
+      --bg-secondary: #1A1A1C;
+      --bg-tertiary: #252528;
+      --bg-hover: #2E2E30;
+      --bg-selected: #35353A;
+
+      /* Brand Colors */
+      --primary: #007AFF;
+      --primary-hover: #0051D5;
+      --primary-light: rgba(0, 122, 255, 0.1);
+
+      /* Status Colors */
+      --success: #34C759;
+      --success-hover: #24A547;
+      --danger: #FF3B30;
+      --danger-hover: #D70015;
+      --warning: #FF9500;
+      --warning-hover: #E87411;
+      --info: #5AC8FA;
+
+      /* Text Colors */
+      --text-primary: #FFFFFF;
+      --text-secondary: #8E8E93;
+      --text-tertiary: #6E6E73;
+      --text-disabled: #3A3A3C;
+
+      /* Border Radius */
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 20px;
+
+      /* Spacing */
+      --spacing-xs: 4px;
+      --spacing-sm: 8px;
+      --spacing-md: 16px;
+      --spacing-lg: 24px;
+      --spacing-xl: 32px;
+
+      /* Shadows */
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+      --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Scrollbar Styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-secondary);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--bg-tertiary);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--bg-hover);
+    }
+
+    /* Layout */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: var(--spacing-md);
+    }
+
+    /* Header */
+    .header {
+      background: var(--bg-secondary);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-xl);
+      margin-bottom: var(--spacing-lg);
+      text-align: center;
+      border: 1px solid var(--bg-tertiary);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--info));
+    }
+
+    .header h1 {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: var(--spacing-sm);
+      letter-spacing: -0.5px;
+    }
+
+    .header p {
+      color: var(--text-secondary);
+      font-size: 16px;
+      margin-bottom: var(--spacing-md);
+    }
+
+    .header .version {
+      color: var(--text-tertiary);
+      font-size: 14px;
+      display: inline-block;
+      padding: var(--spacing-xs) var(--spacing-sm);
+      background: var(--bg-tertiary);
+      border-radius: var(--radius-sm);
+    }
+
+    .header .online-badge {
+      position: absolute;
+      top: var(--spacing-md);
+      right: var(--spacing-md);
+      background: var(--success);
+      color: white;
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+    }
+
+    .status-indicator {
+      width: 6px;
+      height: 6px;
+      background: white;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
+
+    /* Tab Navigation */
+    .tab-nav {
+      display: flex;
+      gap: var(--spacing-sm);
+      margin-bottom: var(--spacing-lg);
+      background: var(--bg-secondary);
+      padding: var(--spacing-sm);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--bg-tertiary);
+    }
+
+    .tab {
+      flex: 1;
+      padding: var(--spacing-md);
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      border-radius: var(--radius-md);
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .tab:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+
+    .tab.active {
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+
+    .tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: var(--spacing-sm);
+      right: var(--spacing-sm);
+      height: 3px;
+      background: var(--primary);
+      border-radius: 3px 3px 0 0;
+    }
+
+    .tab-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      font-size: 12px;
+      background: var(--primary);
+      color: white;
+      border-radius: 12px;
+      margin-left: var(--spacing-sm);
+    }
+
+    /* Scene Selection */
+    .scene-selector {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--spacing-sm);
+      margin-bottom: var(--spacing-lg);
+      padding: var(--spacing-md);
+      background: var(--bg-secondary);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--bg-tertiary);
+    }
+
+    .scene-btn {
+      padding: var(--spacing-md);
+      border: 2px solid var(--bg-tertiary);
+      border-radius: var(--radius-md);
+      background: transparent;
+      color: var(--text-primary);
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--spacing-sm);
+    }
+
+    .scene-btn:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .scene-btn.active {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .scene-btn i {
+      font-size: 24px;
+      color: var(--primary);
+    }
+
+    /* Visualizer Section */
+    .visualizer {
+      background: var(--bg-secondary);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-xl);
+      margin-bottom: var(--spacing-lg);
+      text-align: center;
+      border: 1px solid var(--bg-tertiary);
+      position: relative;
+    }
+
+    .visualizer-header {
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .status {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: var(--spacing-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--spacing-sm);
+    }
+
+    .status.recording {
+      color: var(--danger);
+    }
+
+    .status.recording::before {
+      content: '';
+      width: 12px;
+      height: 12px;
+      background: var(--danger);
+      border-radius: 50%;
+      animation: pulse 1.5s infinite;
+    }
+
+    .status.paused {
+      color: var(--warning);
+    }
+
+    .timer {
+      font-size: 48px;
+      font-weight: 300;
+      font-variant-numeric: tabular-nums;
+      color: var(--text-secondary);
+      letter-spacing: 2px;
+    }
+
+    .levels-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: var(--spacing-md);
+      margin-top: var(--spacing-xl);
+    }
+
+    .level-item {
+      background: var(--bg-tertiary);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-md);
+    }
+
+    .level-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .level-label {
+      font-size: 14px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+    }
+
+    .level-label i {
+      font-size: 16px;
+    }
+
+    .level-status {
+      font-size: 12px;
+      color: var(--text-tertiary);
+    }
+
+    .level-bar {
+      height: 8px;
+      background: var(--bg-hover);
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .level-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--info));
+      width: 0%;
+      transition: width 0.1s ease;
+      border-radius: 4px;
+    }
+
+    .level-fill.system {
+      background: linear-gradient(90deg, var(--warning), var(--info));
+    }
+
+    .level-fill.mic {
+      background: linear-gradient(90deg, var(--success), var(--primary));
+    }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: var(--spacing-md);
+      margin-top: var(--spacing-xl);
+    }
+
+    .btn {
+      padding: var(--spacing-md) var(--spacing-xl);
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      min-width: 140px;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+    }
+
+    .btn:hover::before {
+      transform: translateX(0);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: var(--success-hover);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: var(--danger-hover);
+    }
+
+    .btn-secondary {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-hover);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Transcript Section */
+    .transcript-section {
+      margin-top: var(--spacing-lg);
+      background: var(--bg-secondary);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-lg);
+      border: 1px solid var(--bg-tertiary);
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--spacing-md);
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+    }
+
+    .section-title i {
+      color: var(--info);
+    }
+
+    .transcript-content {
+      background: var(--bg-primary);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-md);
+      min-height: 150px;
+      font-size: 16px;
+      line-height: 1.8;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      border: 1px solid var(--bg-tertiary);
+    }
+
+    .transcript-content::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .transcript-content::-webkit-scrollbar-thumb {
+      background: var(--bg-tertiary);
+      border-radius: 3px;
+    }
+
+    .placeholder {
+      color: var(--text-tertiary);
+      font-style: italic;
+    }
+
+    /* Library */
+    .library {
+      background: var(--bg-secondary);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-lg);
+      border: 1px solid var(--bg-tertiary);
+    }
+
+    .recordings-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+    }
+
+    .recording-item {
+      background: var(--bg-primary);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-md);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 1px solid var(--bg-tertiary);
+      position: relative;
+    }
+
+    .recording-item:hover {
+      background: var(--bg-hover);
+      transform: translateX(4px);
+      border-color: var(--primary);
+    }
+
+    .recording-item.selected {
+      background: var(--primary-light);
+      border-color: var(--primary);
+    }
+
+    .recording-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .recording-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .recording-meta {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md);
+      color: var(--text-secondary);
+      font-size: 14px;
+      flex-wrap: wrap;
+    }
+
+    .recording-actions {
+      display: flex;
+      gap: var(--spacing-sm);
+    }
+
+    .action-btn {
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--bg-tertiary);
+      color: var(--text-secondary);
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+    }
+
+    .action-btn:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+
+    .action-btn.primary:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    /* Settings */
+    .settings {
+      background: var(--bg-secondary);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-lg);
+      border: 1px solid var(--bg-tertiary);
+    }
+
+    .setting-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--spacing-md) 0;
+      border-bottom: 1px solid var(--bg-tertiary);
+    }
+
+    .setting-item:last-child {
+      border-bottom: none;
+    }
+
+    .setting-label {
+      font-size: 16px;
+      color: var(--text-primary);
+    }
+
+    .setting-control {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+    }
+
+    /* Switch */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 26px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: var(--bg-tertiary);
+      transition: .4s;
+      border-radius: 34px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--primary);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(24px);
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(5px);
+    }
+
+    .modal.active {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background: var(--bg-secondary);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-xl);
+      max-width: 600px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      position: relative;
+      border: 1px solid var(--bg-tertiary);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .modal-title {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: var(--spacing-xs);
+      border-radius: var(--radius-sm);
+      transition: all 0.2s ease;
+    }
+
+    .modal-close:hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    .modal-body {
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .textarea {
+      width: 100%;
+      min-height: 200px;
+      padding: var(--spacing-md);
+      border: 1px solid var(--bg-tertiary);
+      border-radius: var(--radius-md);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-size: 14px;
+      font-family: inherit;
+      resize: vertical;
+    }
+
+    .textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--spacing-sm);
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      padding: var(--spacing-md) var(--spacing-lg);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      z-index: 2000;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s ease;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .toast.success {
+      border-left: 4px solid var(--success);
+    }
+
+    .toast.error {
+      border-left: 4px solid var(--danger);
+    }
+
+    .toast.warning {
+      border-left: 4px solid var(--warning);
+    }
+
+    .toast.info {
+      border-left: 4px solid var(--info);
+    }
+
+    /* Loading Spinner */
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .container {
+        padding: var(--spacing-sm);
+      }
+
+      .header h1 {
+        font-size: 24px;
+      }
+
+      .timer {
+        font-size: 36px;
+      }
+
+      .controls {
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        min-width: 120px;
+        flex: 1;
+      }
+
+      .scene-selector {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .levels-container {
+        grid-template-columns: 1fr;
+      }
+
+      .recording-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-xs);
+      }
+    }
+
+    /* Welcome Screen */
+    .welcome-screen {
+      text-align: center;
+      padding: var(--spacing-xl);
+      background: var(--bg-secondary);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--spacing-lg);
+      border: 1px solid var(--bg-tertiary);
+    }
+
+    .welcome-screen h2 {
+      font-size: 24px;
+      margin-bottom: var(--spacing-md);
+      color: var(--primary);
+    }
+
+    .welcome-screen p {
+      color: var(--text-secondary);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--spacing-md);
+      margin-top: var(--spacing-lg);
+    }
+
+    .feature {
+      background: var(--bg-tertiary);
+      padding: var(--spacing-md);
+      border-radius: var(--radius-md);
+      text-align: center;
+    }
+
+    .feature i {
+      font-size: 32px;
+      color: var(--primary);
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .feature h4 {
+      font-size: 16px;
+      margin-bottom: var(--spacing-xs);
+    }
+
+    .feature p {
+      font-size: 14px;
+      color: var(--text-tertiary);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1><i class="fas fa-microphone-alt"></i> AudioMind</h1>
+      <p>全音频收录与智能处理工具 - 随时随地，无需安装</p>
+      <span class="version">v1.0.0 Shareable</span>
+      <div class="online-badge">
+        <div class="status-indicator"></div>
+        <span>在线可用</span>
+      </div>
+    </div>
+
+    <!-- Welcome Screen -->
+    <div class="welcome-screen">
+      <h2><i class="fas fa-rocket"></i> 欢迎使用 AudioMind</h2>
+      <p>专业的音频录制工具，支持系统音频和麦克风同时录制</p>
+
+      <div class="features">
+        <div class="feature">
+          <i class="fas fa-desktop"></i>
+          <h4>系统音频</h4>
+          <p>录制系统声音、视频声音</p>
+        </div>
+        <div class="feature">
+          <i class="fas fa-microphone"></i>
+          <h4>麦克风录制</h4>
+          <p>清晰收录人声和语音</p>
+        </div>
+        <div class="feature">
+          <i class="fas fa-save"></i>
+          <h4>本地保存</h4>
+          <p>录音自动保存到浏览器</p>
+        </div>
+        <div class="feature">
+          <i class="fas fa-globe"></i>
+          <h4>跨平台</h4>
+          <p>支持 Windows、macOS、Linux</p>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="document.querySelector('.tab-nav button').click()" style="margin-top: var(--spacing-lg);">
+        <i class="fas fa-play"></i>
+        开始使用
+      </button>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="tab-nav">
+      <button class="tab active" onclick="showTab('recording')">
+        <i class="fas fa-microphone"></i> 录音
+      </button>
+      <button class="tab" onclick="showTab('library')">
+        <i class="fas fa-folder"></i> 内容库
+        <span class="tab-badge" id="count-badge">0</span>
+      </button>
+      <button class="tab" onclick="showTab('settings')">
+        <i class="fas fa-cog"></i> 设置
+      </button>
+    </div>
+
+    <!-- Recording Tab -->
+    <div id="tab-recording">
+      <!-- Scene Selection -->
+      <div class="scene-selector">
+        <button class="scene-btn active" data-scene="interview" onclick="selectScene('interview')">
+          <i class="fas fa-user-tie"></i>
+          <span>面试</span>
+        </button>
+        <button class="scene-btn" data-scene="learning" onclick="selectScene('learning')">
+          <i class="fas fa-book"></i>
+          <span>学习</span>
+        </button>
+        <button class="scene-btn" data-scene="meeting" onclick="selectScene('meeting')">
+          <i class="fas fa-users"></i>
+          <span>会议</span>
+        </button>
+        <button class="scene-btn" data-scene="other" onclick="selectScene('other')">
+          <i class="fas fa-ellipsis-h"></i>
+          <span>其他</span>
+        </button>
+      </div>
+
+      <!-- Visualizer -->
+      <div class="visualizer">
+        <div class="visualizer-header">
+          <div class="status" id="status">准备录音</div>
+          <div class="timer" id="timer">00:00</div>
+        </div>
+
+        <!-- Audio Levels -->
+        <div class="levels-container">
+          <div class="level-item">
+            <div class="level-header">
+              <div class="level-label">
+                <i class="fas fa-desktop"></i>
+                系统音频
+              </div>
+              <span class="level-status" id="system-status">未连接</span>
+            </div>
+            <div class="level-bar">
+              <div class="level-fill system" id="system-level"></div>
+            </div>
+          </div>
+          <div class="level-item">
+            <div class="level-header">
+              <div class="level-label">
+                <i class="fas fa-microphone"></i>
+                麦克风
+              </div>
+              <span class="level-status" id="mic-status">未连接</span>
+            </div>
+            <div class="level-bar">
+              <div class="level-fill mic" id="mic-level"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+          <button class="btn btn-primary" id="btn-start" onclick="startRecording()">
+            <i class="fas fa-play"></i>
+            开始录制
+          </button>
+          <button class="btn btn-danger" id="btn-stop" onclick="stopRecording()" style="display: none;">
+            <i class="fas fa-stop"></i>
+            停止录制
+          </button>
+          <button class="btn btn-warning" id="btn-pause" onclick="togglePause()" style="display: none;">
+            <i class="fas fa-pause"></i>
+            暂停
+          </button>
+        </div>
+
+        <!-- Transcript Section -->
+        <div class="transcript-section">
+          <div class="section-header">
+            <h3 class="section-title">
+              <i class="fas fa-closed-captioning"></i>
+              实时转写
+            </h3>
+            <button class="action-btn primary" onclick="copyTranscript()" id="copy-btn" style="display: none;">
+              <i class="fas fa-copy"></i>
+              复制
+            </button>
+          </div>
+          <div class="transcript-content" id="transcript">
+            <span class="placeholder">开始录音后，转写内容将显示在这里...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Library Tab -->
+    <div id="tab-library" style="display: none;">
+      <div class="library">
+        <div class="section-header">
+          <h3 class="section-title">
+            <i class="fas fa-folder-open"></i>
+            录音列表
+          </h3>
+          <button class="action-btn primary" onclick="exportAll()">
+            <i class="fas fa-download"></i>
+            导出全部
+          </button>
+        </div>
+        <div class="recordings-list" id="recordings-container">
+          <div class="placeholder">暂无录音记录</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Tab -->
+    <div id="tab-settings" style="display: none;">
+      <div class="settings">
+        <h3 class="section-title">
+          <i class="fas fa-cog"></i>
+          设置
+        </h3>
+
+        <!-- Recording Quality -->
+        <div class="setting-item">
+          <label class="setting-label">录音质量</label>
+          <div class="setting-control">
+            <select class="select" id="quality-select" onchange="updateQuality()">
+              <option value="high">高质量 (192kbps)</option>
+              <option value="medium" selected>标准质量 (128kbps)</option>
+              <option value="low">低质量 (64kbps)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Auto-pause -->
+        <div class="setting-item">
+          <label class="setting-label">自动暂停</label>
+          <div class="setting-control">
+            <label class="switch">
+              <input type="checkbox" id="auto-pause" onchange="updateAutoPause()">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Auto-save -->
+        <div class="setting-item">
+          <label class="setting-label">自动保存转写</label>
+          <div class="setting-control">
+            <label class="switch">
+              <input type="checkbox" id="auto-save" checked onchange="updateAutoSave()">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Dark Mode -->
+        <div class="setting-item">
+          <label class="setting-label">深色模式</label>
+          <div class="setting-control">
+            <label class="switch">
+              <input type="checkbox" id="dark-mode" checked onchange="updateDarkMode()">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Volume Level -->
+        <div class="setting-item">
+          <label class="setting-label">音量显示敏感度</label>
+          <div class="setting-control">
+            <input type="range" class="range" id="volume-range" min="1" max="10" value="5" onchange="updateVolumeSensitivity()">
+            <span id="volume-value">5</span>
+          </div>
+        </div>
+
+        <!-- Storage Info -->
+        <div class="setting-item">
+          <label class="setting-label">存储空间</label>
+          <div class="setting-control">
+            <span id="storage-info">正在计算...</span>
+          </div>
+        </div>
+
+        <!-- Clear Data -->
+        <div class="setting-item">
+          <label class="setting-label">清除所有数据</label>
+          <div class="setting-control">
+            <button class="btn btn-danger" onclick="clearAllData()">
+              <i class="fas fa-trash"></i>
+              清除数据
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Instructions -->
+      <div style="margin-top: var(--spacing-lg); padding: var(--spacing-md); background: var(--bg-secondary); border-radius: var(--radius-lg); border: 1px solid var(--bg-tertiary);">
+        <h4 style="margin-bottom: var(--spacing-sm);"><i class="fas fa-info-circle"></i> 使用说明</h4>
+        <ul style="margin-top: var(--spacing-sm); padding-left: 20px; color: var(--text-secondary);">
+          <li>推荐使用 Chrome 或 Edge 浏览器</li>
+          <li>首次使用需要授权麦克风和系统音频权限</li>
+          <li>系统音频录制需要选择"整个屏幕"选项</li>
+          <li>录音数据保存在浏览器本地存储中</li>
+          <li>按空格键可暂停/恢复录音</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Modal -->
+  <div class="modal" id="summary-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">录音详情</h3>
+        <button class="modal-close" onclick="closeModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="modal-transcript" style="background: var(--bg-primary); padding: var(--spacing-md); border-radius: var(--radius-md); margin-bottom: var(--spacing-md); min-height: 100px;"></div>
+        <textarea class="textarea" id="summary-editor" placeholder="在这里编辑 AI 总结..."></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal()">
+          <i class="fas fa-times"></i>
+          取消
+        </button>
+        <button class="btn btn-primary" onclick="saveSummary()">
+          <i class="fas fa-save"></i>
+          保存
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
+  <script>
+    // Global Variables
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let timerInterval = null;
+    let recordingTime = 0;
+    let isRecording = false;
+    let isPaused = false;
+    let systemStream = null;
+    let micStream = null;
+    let audioContext = null;
+    let analyserSystem = null;
+    let analyserMic = null;
+    let animationFrameId = null;
+    let currentScene = 'interview';
+    let currentRecordingId = null;
+
+    // Scene Labels
+    const sceneLabels = {
+      interview: '面试',
+      learning: '学习',
+      meeting: '会议',
+      other: '其他'
+    };
+
+    // Audio Quality Settings
+    const qualitySettings = {
+      high: { mimeType: 'audio/webm;codecs=opus', bitRate: 192000 },
+      medium: { mimeType: 'audio/webm;codecs=opus', bitRate: 128000 },
+      low: { mimeType: 'audio/webm;codecs=opus', bitRate: 64000 }
+    };
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+      loadSettings();
+      updateStorageInfo();
+      setInterval(updateTimer, 1000);
+    });
+
+    // Tab Management
+    function showTab(tabName) {
+      // Hide all tabs
+      document.getElementById('tab-recording').style.display = 'none';
+      document.getElementById('tab-library').style.display = 'none';
+      document.getElementById('tab-settings').style.display = 'none';
+
+      // Remove active class from all tab buttons
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+
+      // Show selected tab
+      document.getElementById(`tab-${tabName}`).style.display = 'block';
+
+      // Add active class to clicked tab
+      event.target.classList.add('active');
+
+      // Refresh content based on tab
+      if (tabName === 'library') {
+        renderRecordingsList();
+      }
+    }
+
+    // Scene Selection
+    function selectScene(scene) {
+      currentScene = scene;
+
+      // Update active scene button
+      document.querySelectorAll('.scene-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.closest('.scene-btn').classList.add('active');
+
+      // Update timer reset
+      if (!isRecording) {
+        resetTimer();
+      }
+    }
+
+    // Audio Recording Functions
+    async function startRecording() {
+      try {
+        showStatus('正在获取权限...', 'default');
+
+        // Get system audio
+        try {
+          systemStream = await navigator.mediaDevices.getDisplayMedia({
+            audio: {
+              echoCancellation: false,
+              noiseSuppression: false,
+              autoGainControl: false
+            },
+            video: false
+          });
+          updateSystemStatus('已连接', true);
+        } catch (error) {
+          console.warn('System audio not available:', error);
+          updateSystemStatus('未获取', false);
+        }
+
+        // Get microphone
+        try {
+          micStream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true
+            }
+          });
+          updateMicStatus('已连接', true);
+        } catch (error) {
+          console.error('Microphone access denied:', error);
+          showToast('麦克风访问被拒绝', 'error');
+          return;
+        }
+
+        // Combine streams
+        const combinedStream = new MediaStream();
+        if (systemStream) {
+          systemStream.getAudioTracks().forEach(track => combinedStream.addTrack(track));
+        }
+        if (micStream) {
+          micStream.getAudioTracks().forEach(track => combinedStream.addTrack(track));
+        }
+
+        // Set up audio visualization
+        setupAudioVisualization(systemStream, micStream);
+
+        // Create media recorder
+        const options = qualitySettings[document.getElementById('quality-select').value];
+        mediaRecorder = new MediaRecorder(combinedStream, options);
+
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            audioChunks.push(event.data);
+          }
+        };
+
+        mediaRecorder.onstop = () => {
+          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          saveRecording(audioBlob);
+
+          // Clean up
+          if (systemStream) systemStream.getTracks().forEach(track => track.stop());
+          if (micStream) micStream.getTracks().forEach(track => track.stop());
+          if (audioContext) audioContext.close();
+        };
+
+        // Start recording
+        mediaRecorder.start();
+        isRecording = true;
+        isPaused = false;
+
+        // Update UI
+        document.getElementById('btn-start').style.display = 'none';
+        document.getElementById('btn-stop').style.display = 'inline-flex';
+        document.getElementById('btn-pause').style.display = 'inline-flex';
+        document.getElementById('transcript').innerHTML = '<span class="placeholder">开始录音，正在实时转写...</span>';
+
+        startTimer();
+        showStatus('正在录音', 'recording');
+        showToast('录音已开始', 'success');
+
+        // Initialize audio context for visualization
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      } catch (error) {
+        console.error('Error starting recording:', error);
+        showToast('录音启动失败: ' + error.message, 'error');
+        showError('录音启动失败，请检查权限设置');
+      }
+    }
+
+    function stopRecording() {
+      if (mediaRecorder && isRecording) {
+        mediaRecorder.stop();
+        isRecording = false;
+
+        // Stop visualization
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+        }
+
+        // Update UI
+        document.getElementById('btn-start').style.display = 'inline-flex';
+        document.getElementById('btn-stop').style.display = 'none';
+        document.getElementById('btn-pause').style.display = 'none';
+        document.getElementById('pause-icon').className = 'fas fa-pause';
+
+        stopTimer();
+        showStatus('录音已停止', 'stopped');
+        showToast('录音已保存', 'success');
+
+        // Reset recording state
+        audioChunks = [];
+        systemStream = null;
+        micStream = null;
+        updateSystemStatus('已断开', false);
+        updateMicStatus('已断开', false);
+      }
+    }
+
+    function togglePause() {
+      if (!isRecording) return;
+
+      if (isPaused) {
+        // Resume
+        mediaRecorder.resume();
+        isPaused = false;
+        document.getElementById('pause-icon').className = 'fas fa-pause';
+        showStatus('正在录音', 'recording');
+        showToast('录音已恢复', 'info');
+      } else {
+        // Pause
+        mediaRecorder.pause();
+        isPaused = true;
+        document.getElementById('pause-icon').className = 'fas fa-play';
+        showStatus('已暂停', 'paused');
+        showToast('录音已暂停', 'warning');
+      }
+    }
+
+    // Audio Visualization
+    function setupAudioVisualization(system, mic) {
+      // System audio analyzer
+      if (system) {
+        const sourceSystem = audioContext.createMediaStreamSource(system);
+        analyserSystem = audioContext.createAnalyser();
+        analyserSystem.fftSize = 256;
+        sourceSystem.connect(analyserSystem);
+      }
+
+      // Microphone analyzer
+      if (mic) {
+        const sourceMic = audioContext.createMediaStreamSource(mic);
+        analyserMic = audioContext.createAnalyser();
+        analyserMic.fftSize = 256;
+        sourceMic.connect(analyserMic);
+      }
+
+      updateLevels();
+    }
+
+    function updateLevels() {
+      if (!isRecording) return;
+
+      // Update system audio level
+      if (analyserSystem) {
+        const bufferLength = analyserSystem.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+        analyserSystem.getByteTimeDomainData(dataArray);
+
+        let sum = 0;
+        for (let i = 0; i < bufferLength; i++) {
+          sum += Math.abs(dataArray[i] - 128);
+        }
+        const average = sum / bufferLength;
+        const percentage = Math.min((average / 128) * 100, 100);
+
+        document.getElementById('system-level').style.width = percentage + '%';
+      }
+
+      // Update microphone level
+      if (analyserMic) {
+        const bufferLength = analyserMic.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+        analyserMic.getByteTimeDomainData(dataArray);
+
+        let sum = 0;
+        for (let i = 0; i < bufferLength; i++) {
+          sum += Math.abs(dataArray[i] - 128);
+        }
+        const average = sum / bufferLength;
+        const percentage = Math.min((average / 128) * 100, 100);
+
+        document.getElementById('mic-level').style.width = percentage + '%';
+      }
+
+      animationFrameId = requestAnimationFrame(updateLevels);
+    }
+
+    // Timer Functions
+    function startTimer() {
+      recordingTime = 0;
+      timerInterval = setInterval(() => {
+        if (!isPaused) {
+          recordingTime++;
+          updateTimerDisplay();
+        }
+      }, 1000);
+    }
+
+    function stopTimer() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+    }
+
+    function resetTimer() {
+      recordingTime = 0;
+      updateTimerDisplay();
+    }
+
+    function updateTimer() {
+      if (!isRecording) {
+        updateTimerDisplay();
+      }
+    }
+
+    function updateTimerDisplay() {
+      const minutes = Math.floor(recordingTime / 60);
+      const seconds = recordingTime % 60;
+      document.getElementById('timer').textContent =
+        `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    // Recording Management
+    function saveRecording(blob) {
+      const recordings = getRecordings();
+      const date = new Date();
+      const timestamp = date.toISOString().replace(/[:.]/g, '-').slice(0, 19);
+
+      const recording = {
+        id: `rec_${Date.now()}`,
+        fileName: `${sceneLabels[currentScene]}_${timestamp}.webm`,
+        scene: currentScene,
+        date: date.toISOString(),
+        duration: recordingTime,
+        size: blob.size,
+        blob: blob,
+        transcript: '',
+        summary: '',
+        systemAudio: !!systemStream,
+        microphone: !!micStream
+      };
+
+      recordings.unshift(recording);
+      saveRecordings(recordings);
+
+      showToast('录音已保存', 'success');
+      document.getElementById('copy-btn').style.display = 'none';
+    }
+
+    function getRecordings() {
+      const stored = localStorage.getItem('audioMindRecordings');
+      return stored ? JSON.parse(stored) : [];
+    }
+
+    function saveRecordings(recordings) {
+      localStorage.setItem('audioMindRecordings', JSON.stringify(recordings));
+      document.getElementById('count-badge').textContent = recordings.length;
+    }
+
+    function renderRecordingsList() {
+      const recordings = getRecordings();
+      const container = document.getElementById('recordings-container');
+
+      if (recordings.length === 0) {
+        container.innerHTML = '<div class="placeholder">暂无录音记录</div>';
+        return;
+      }
+
+      container.innerHTML = recordings.map(rec => {
+        const date = new Date(rec.date);
+        const dateStr = `${date.getMonth() + 1}月${date.getDate()}日 ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+        const durationStr = formatDuration(rec.duration);
+        const sizeStr = formatFileSize(rec.size);
+
+        return `
+          <div class="recording-item" onclick="viewRecording('${rec.id}')">
+            <div class="recording-header">
+              <div class="recording-title">${rec.fileName}</div>
+              <div class="recording-actions">
+                <button class="action-btn" onclick="event.stopPropagation(); playAudio('${rec.id}')">
+                  <i class="fas fa-play"></i>
+                </button>
+                <button class="action-btn" onclick="event.stopPropagation(); downloadAudio('${rec.id}')">
+                  <i class="fas fa-download"></i>
+                </button>
+                <button class="action-btn" onclick="event.stopPropagation(); deleteRecording('${rec.id}')">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </div>
+            <div class="recording-meta">
+              <span><i class="fas fa-tag"></i> ${sceneLabels[rec.scene]}</span>
+              <span><i class="fas fa-clock"></i> ${dateStr}</span>
+              <span><i class="fas fa-hourglass-half"></i> ${durationStr}</span>
+              <span><i class="fas fa-hdd"></i> ${sizeStr}</span>
+              ${rec.transcript ? '<span><i class="fas fa-check-circle"></i> 已转写</span>' : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function viewRecording(id) {
+      const recording = getRecordings().find(r => r.id === id);
+      if (!recording) return;
+
+      currentRecordingId = id;
+
+      // Show modal with details
+      document.getElementById('modal-transcript').textContent =
+        recording.transcript || '<span class="placeholder">暂无转写内容</span>';
+      document.getElementById('summary-editor').value = recording.summary || '';
+
+      document.getElementById('summary-modal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('summary-modal').classList.remove('active');
+      currentRecordingId = null;
+    }
+
+    function saveSummary() {
+      if (!currentRecordingId) return;
+
+      const summary = document.getElementById('summary-editor').value;
+      const recordings = getRecordings();
+      const recording = recordings.find(r => r.id === currentRecordingId);
+
+      if (recording) {
+        recording.summary = summary;
+        saveRecordings(recordings);
+      }
+
+      closeModal();
+      showToast('总结已保存', 'success');
+    }
+
+    // Settings Functions
+    function loadSettings() {
+      const settings = JSON.parse(localStorage.getItem('audioMindSettings') || '{}');
+
+      // Apply settings
+      if (settings.quality) document.getElementById('quality-select').value = settings.quality;
+      if (settings.autoPause !== undefined) document.getElementById('auto-pause').checked = settings.autoPause;
+      if (settings.autoSave !== undefined) document.getElementById('auto-save').checked = settings.autoSave;
+      if (settings.darkMode !== undefined) document.getElementById('dark-mode').checked = settings.darkMode;
+      if (settings.volumeSensitivity) document.getElementById('volume-range').value = settings.volumeSensitivity;
+    }
+
+    function saveSettings() {
+      const settings = {
+        quality: document.getElementById('quality-select').value,
+        autoPause: document.getElementById('auto-pause').checked,
+        autoSave: document.getElementById('auto-save').checked,
+        darkMode: document.getElementById('dark-mode').checked,
+        volumeSensitivity: document.getElementById('volume-range').value
+      };
+      localStorage.setItem('audioMindSettings', JSON.stringify(settings));
+    }
+
+    function updateQuality() {
+      saveSettings();
+      showToast('录音质量已更新', 'info');
+    }
+
+    function updateAutoPause() {
+      saveSettings();
+      showToast('自动暂停设置已保存', 'info');
+    }
+
+    function updateAutoSave() {
+      saveSettings();
+      showToast('自动保存设置已保存', 'info');
+    }
+
+    function updateDarkMode() {
+      const enabled = document.getElementById('dark-mode').checked;
+      if (enabled) {
+        document.body.style.background = 'var(--bg-primary)';
+      } else {
+        document.body.style.background = '#FFFFFF';
+        document.body.style.color = '#000000';
+      }
+      saveSettings();
+    }
+
+    function updateVolumeSensitivity() {
+      const value = document.getElementById('volume-range').value;
+      document.getElementById('volume-value').textContent = value;
+      saveSettings();
+    }
+
+    function clearAllData() {
+      if (confirm('确定要清除所有录音数据吗？此操作不可恢复！')) {
+        localStorage.removeItem('audioMindRecordings');
+        localStorage.removeItem('audioMindSettings');
+
+        document.getElementById('count-badge').textContent = '0';
+        document.getElementById('storage-info').textContent = '0 KB';
+        showToast('所有数据已清除', 'success');
+
+        // Go back to library tab to update display
+        showTab('library');
+      }
+    }
+
+    // Utility Functions
+    function showStatus(message, type) {
+      const status = document.getElementById('status');
+      status.textContent = message;
+      status.className = 'status';
+      if (type !== 'default') {
+        status.classList.add(type);
+      }
+    }
+
+    function updateSystemStatus(status, connected) {
+      document.getElementById('system-status').textContent = status;
+      document.getElementById('system-status').style.color =
+        connected ? 'var(--success)' : 'var(--text-tertiary)';
+    }
+
+    function updateMicStatus(status, connected) {
+      document.getElementById('mic-status').textContent = status;
+      document.getElementById('mic-status').style.color =
+        connected ? 'var(--success)' : 'var(--text-tertiary)';
+    }
+
+    function formatDuration(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${mins}:${String(secs).padStart(2, '0')}`;
+    }
+
+    function formatFileSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    function updateStorageInfo() {
+      const recordings = getRecordings();
+      let totalSize = 0;
+      recordings.forEach(rec => {
+        totalSize += rec.size;
+      });
+
+      document.getElementById('storage-info').textContent = formatFileSize(totalSize);
+    }
+
+    // File Operations
+    function downloadAudio(id) {
+      const recording = getRecordings().find(r => r.id === id);
+      if (!recording) return;
+
+      const url = URL.createObjectURL(recording.blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = recording.fileName;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      showToast('下载已开始', 'success');
+    }
+
+    function deleteRecording(id) {
+      if (!confirm('确定要删除这个录音吗？')) return;
+
+      let recordings = getRecordings();
+      recordings = recordings.filter(r => r.id !== id);
+      saveRecordings(recordings);
+
+      renderRecordingsList();
+      updateStorageInfo();
+
+      showToast('录音已删除', 'success');
+    }
+
+    function playAudio(id) {
+      const recording = getRecordings().find(r => r.id === id);
+      if (!recording) return;
+
+      const url = URL.createObjectURL(recording.blob);
+      const audio = new Audio(url);
+      audio.play();
+    }
+
+    function exportAll() {
+      const recordings = getRecordings();
+      if (recordings.length === 0) {
+        showToast('没有可导出的录音', 'warning');
+        return;
+      }
+
+      let downloaded = 0;
+      recordings.forEach(rec => {
+        downloadAudio(rec.id);
+        downloaded++;
+      });
+
+      showToast(`已导出 ${downloaded} 个录音`, 'success');
+    }
+
+    function copyTranscript() {
+      const transcript = document.getElementById('transcript').textContent;
+      navigator.clipboard.writeText(transcript).then(() => {
+        showToast('转写内容已复制', 'success');
+      });
+    }
+
+    // Error Handling
+    function showError(message) {
+      const toast = document.createElement('div');
+      toast.className = 'toast error show';
+      toast.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+
+      const container = document.getElementById('toast-container');
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => container.removeChild(toast), 300);
+      }, 3000);
+    }
+
+    function showToast(message, type = 'info') {
+      const toast = document.createElement('div');
+      toast.className = `toast ${type} show`;
+
+      const icons = {
+        success: 'fa-check-circle',
+        error: 'fa-exclamation-circle',
+        warning: 'fa-exclamation-triangle',
+        info: 'fa-info-circle'
+      };
+
+      toast.innerHTML = `<i class="fas ${icons[type]}"></i> ${message}`;
+
+      const container = document.getElementById('toast-container');
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+          if (container.contains(toast)) {
+            container.removeChild(toast);
+          }
+        }, 300);
+      }, 3000);
+    }
+
+    // Keyboard Shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+      switch(e.key) {
+        case ' ':
+          e.preventDefault();
+          if (isRecording) {
+            togglePause();
+          }
+          break;
+        case 'r':
+          if (!isRecording && !e.ctrlKey) {
+            e.preventDefault();
+            startRecording();
+          }
+          break;
+        case 'Escape':
+          if (document.getElementById('summary-modal').classList.contains('active')) {
+            closeModal();
+          }
+          break;
+      }
+    });
+  </script>
+</body>
+</html>
